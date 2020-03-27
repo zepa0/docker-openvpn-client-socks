@@ -1,25 +1,16 @@
-# OpenVPN client + SOCKS proxy
-# Usage:
-# Create configuration (.ovpn), mount it in a volume
-# docker run --volume=something.ovpn:/ovpn.conf:ro --device=/dev/net/tun --cap-add=NET_ADMIN
-# Connect to (container):1080
-# Note that the config must have embedded certs
-# See `start` in same repo for more ideas
+FROM alpine:latest
 
-FROM alpine
+LABEL maintainer="melsonlai"
 
-COPY sockd.sh /usr/local/bin/
+RUN wget -O- -q https://github.com/just-containers/s6-overlay/releases/download/v1.22.1.0/s6-overlay-amd64.tar.gz | tar xzf - -C /
 
-RUN true \
-    && echo "http://dl-4.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
-    && apk add --update-cache dante-server openvpn bash openresolv openrc \
-    && rm -rf /var/cache/apk/* \
-    && chmod a+x /usr/local/bin/sockd.sh \
-    && true
+RUN echo "http://dl-4.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
+      apk update && \
+      apk add dante-server openvpn openresolv
 
-COPY sockd.conf /etc/
+COPY sockd.conf /etc/sockd.conf
+COPY services.d /etc/services.d
+RUN chmod 511 /etc/services.d/sockd/run
 
-ENTRYPOINT [ \
-    "/bin/bash", "-c", \
-    "cd /etc/openvpn && /usr/sbin/openvpn --config *.conf --script-security 2 --up /usr/local/bin/sockd.sh" \
-    ]
+ENTRYPOINT [ "/init" ]
+CMD [ "/bin/sh", "-c", "cd /root/openvpn/ && exec /usr/sbin/openvpn --config *.ovpn --script-security 2 --up /etc/openvpn/up.sh --down /etc/openvpn/down.sh" ]
