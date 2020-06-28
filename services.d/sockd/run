@@ -1,3 +1,8 @@
 #!/bin/sh
 
+while [ "$(/sbin/ip -br link show | /usr/bin/cut -d' ' -f1 | /bin/grep -o tun)" == "" ];
+do
+  /bin/sleep 1
+done
+
 exec /usr/sbin/sockd
