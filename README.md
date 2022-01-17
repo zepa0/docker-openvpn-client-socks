@@ -41,9 +41,23 @@ docker run \
 
 Connect to SOCKS5 proxy through `localhost:1080`.  
 
+### :openfortivpn
+
+The `:openfortivpn` image uses [openfortivpn](https://github.com/adrienverge/openfortivpn) as the VPN component. Dante is still the proxy server.
+
+```bash
+docker run \
+           --privileged \
+           -e OPENFORTIVPN_CONFIG=<your_openfortivpn_config_file> \ # Required
+           -v <your_openfortivpn_config_file> \ # Required
+           -p 1080:1080 \
+            melsonlai/docker-openvpn-client-socks:openfortivpn
+```
+
 
 # Acknowledgement and Revision
 
++ 20220117: Add `:openfortivpn`
 + 20201120: Add `:nordvpn`
 + 20200327: Forked from <https://github.com/kizzx2/docker-openvpn-client-socks>
 + 20200327: Restructure with <https://github.com/just-containers/s6-overlay>
